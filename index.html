@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>⚔️ Dungeon Quest RPG</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Inter:wght@400;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #1a1a2e;
+      --bg2: #16213e;
+      --bg3: #0f1629;
+      --accent: #e94560;
+      --gold: #f0c040;
+      --green: #4ecca3;
+      --blue: #7ec8e3;
+      --purple: #b06ab3;
+      --text: #eee;
+      --muted: #888;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .screen {
+      display: none;
+      padding: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    h1 {
+      font-family: 'MedievalSharp', cursive;
+      text-align: center;
+      color: var(--gold);
+      font-size: 2em;
+      margin-bottom: 5px;
+    }
+
+    h2 {
+      font-family: 'MedievalSharp', cursive;
+      color: var(--gold);
+      font-size: 1.3em;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      background: var(--bg2);
+      border: 2px solid #333;
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 1em;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input[type="text"]:focus {
+      border-color: var(--gold);
+    }
+
+    .points-left {
+      text-align: center;
+      font-size: 1em;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: var(--bg2);
+      border-radius: 10px;
+      border: 1px solid #333;
+    }
+
+    .points-left span {
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 1.2em;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--bg2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border: 1px solid #333;
+    }
+
+    .stat-info {
+      flex: 1;
+    }
+
+    .stat-name {
+      font-weight: 700;
+      font-size: 0.95em;
+    }
+
+    .stat-desc {
+      font-size: 0.7em;
+      color: var(--muted);
+    }
+
+    .stat-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-controls button {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      font-size: 1.1em;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .stat-controls button:active {
+      background: var(--gold);
+      color: var(--bg);
+    }
+
+    .stat-controls button:disabled {
+      border-color: #444;
+      color: #444;
+    }
+
+    .stat-value {
+      font-size: 1.3em;
+      font-weight: 700;
+      color: var(--gold);
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .class-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .class-card {
+      padding: 12px;
+      background: var(--bg2);
+      border: 2px solid #333;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .class-card.selected {
+      border-color: var(--gold);
+      background: #1f2b4d;
+    }
+
+    .class-card .emoji {
+      font-size: 1.8em;
+    }
+
+    .class-card .name {
+      font-weight: 700;
+      margin-top: 4px;
+      font-size: 0.95em;
+    }
+
+    .class-card .desc {
+      font-size: 0.7em;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:disabled {
+      background: #555;
+      color: #888;
+      cursor: default;
+    }
+
+    .btn-secondary {
+      background: var(--bg2);
+      color: var(--gold);
+      border: 2px solid var(--gold);
+    }
+
+    .btn-small {
+      width: auto;
+      padding: 8px 16px;
+      font-size: 0.85em;
+      margin-top: 0;
+    }
+
+    /* Battle */
+    .battle-area {
+      background: var(--bg2);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 12px;
+      border: 1px solid #333;
+    }
+
+    .entity {
+      margin-bottom: 12px;
+    }
+
+    .entity-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .entity-name {
+      font-weight: 700;
+      font-size: 1em;
+    }
+
+    .entity-level {
+      color: var(--muted);
+      font-size: 0.8em;
+    }
+
+    .hp-bar-container {
+      background: #333;
+      border-radius: 10px;
+      height: 22px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hp-bar {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+      background: linear-gradient(90deg, var(--accent), #ff6b6b);
+    }
+
+    .hp-bar.player {
+      background: linear-gradient(90deg, var(--green), #6ddb9e);
+    }
+
+    .hp-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.75em;
+      font-weight: 700;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .energy-bar-container {
+      background: #333;
+      border-radius: 10px;
+      height: 14px;
+      overflow: hidden;
+      position: relative;
+      margin-top: 5px;
+    }
+
+    .energy-bar {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+      background: linear-gradient(90deg, var(--blue), #a8d8ea);
+    }
+
+    .energy-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.65em;
+      font-weight: 700;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .monster-sprite {
+      text-align: center;
+      font-size: 3.5em;
+      margin: 8px 0;
+    }
+
+    .battle-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .battle-btn {
+      padding: 10px;
+      border: 2px solid #444;
+      border-radius: 10px;
+      background: var(--bg2);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.9em;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .battle-btn:active:not(:disabled) {
+      border-color: var(--gold);
+      transform: scale(0.97);
+    }
+
+    .battle-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .battle-btn .btn-emoji {
+      font-size: 1.2em;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .battle-btn .btn-cost {
+      font-size: 0.65em;
+      color: var(--blue);
+    }
+
+    .battle-log {
+      background: #111;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 12px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 0.8em;
+      border: 1px solid #333;
+    }
+
+    .log-entry {
+      padding: 2px 0;
+      border-bottom: 1px solid #222;
+      animation: fadeIn 0.3s;
+    }
+
+    .log-entry:last-child {
+      border: none;
+    }
+
+    .log-dmg {
+      color: var(--accent);
+    }
+
+    .log-heal {
+      color: var(--green);
+    }
+
+    .log-info {
+      color: var(--blue);
+    }
+
+    .log-gold {
+      color: var(--gold);
+    }
+
+    .log-loot {
+      color: var(--purple);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #333;
+      margin: 12px 0;
+    }
+
+    /* Player HUD */
+    .player-hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      border: 1px solid #333;
+      font-size: 0.9em;
+    }
+
+    .hud-gold {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* Inventory & Equipment */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 15px;
+      background: var(--bg3);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85em;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--bg2);
+      color: var(--gold);
+    }
+
+    .inv-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .item-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg2);
+      border-radius: 10px;
+      border: 1px solid #333;
+    }
+
+    .item-card.rarity-comun {
+      border-left: 3px solid #888;
+    }
+
+    .item-card.rarity-poco-comun {
+      border-left: 3px solid var(--green);
+    }
+
+    .item-card.rarity-raro {
+      border-left: 3px solid var(--blue);
+    }
+
+    .item-card.rarity-epico {
+      border-left: 3px solid var(--purple);
+    }
+
+    .item-card.rarity-legendario {
+      border-left: 3px solid var(--gold);
+    }
+
+    .item-icon {
+      font-size: 1.8em;
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .item-info {
+      flex: 1;
+    }
+
+    .item-name {
+      font-weight: 700;
+      font-size: 0.9em;
+    }
+
+    .item-name.rarity-comun {
+      color: #ccc;
+    }
+
+    .item-name.rarity-poco-comun {
+      color: var(--green);
+    }
+
+    .item-name.rarity-raro {
+      color: var(--blue);
+    }
+
+    .item-name.rarity-epico {
+      color: var(--purple);
+    }
+
+    .item-name.rarity-legendario {
+      color: var(--gold);
+    }
+
+    .item-desc {
+      font-size: 0.7em;
+      color: var(--muted);
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .item-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: var(--bg3);
+      color: var(--text);
+      font-size: 0.75em;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .item-btn:active {
+      border-color: var(--gold);
+    }
+
+    .item-btn.sell {
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .item-btn.equip {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .item-btn.unequip {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .item-btn.use {
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .equip-slots {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .equip-slot {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg2);
+      border-radius: 10px;
+      border: 1px dashed #444;
+    }
+
+    .equip-slot.filled {
+      border-style: solid;
+      border-color: #555;
+    }
+
+    .slot-label {
+      font-size: 0.75em;
+      color: var(--muted);
+      min-width: 65px;
+    }
+
+    .slot-empty {
+      font-size: 0.8em;
+      color: #555;
+      font-style: italic;
+    }
+
+    /* Shop */
+    .shop-header {
+      text-align: center;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: var(--bg2);
+      border-radius: 12px;
+      border: 1px solid #333;
+    }
+
+    .shop-keeper {
+      font-size: 3em;
+    }
+
+    .shop-gold {
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 1.1em;
+      margin-top: 8px;
+    }
+
+    .shop-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .shop-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: var(--bg2);
+      border-radius: 10px;
+      border: 1px solid #333;
+    }
+
+    .shop-price {
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 0.9em;
+      min-width: 55px;
+      text-align: right;
+    }
+
+    .buy-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 2px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 0.85em;
+      cursor: pointer;
+    }
+
+    .buy-btn:active {
+      background: var(--gold);
+      color: var(--bg);
+    }
+
+    .buy-btn:disabled {
+      border-color: #444;
+      color: #444;
+      cursor: default;
+    }
+
+    /* Loot popup */
+    .loot-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .loot-overlay.active {
+      display: flex;
+    }
+
+    .loot-box {
+      background: var(--bg2);
+      border-radius: 15px;
+      padding: 25px;
+      max-width: 350px;
+      width: 100%;
+      border: 2px solid var(--gold);
+      text-align: center;
+    }
+
+    .loot-title {
+      font-family: 'MedievalSharp', cursive;
+      color: var(--gold);
+      font-size: 1.5em;
+      margin-bottom: 15px;
+    }
+
+    .loot-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .loot-item {
+      padding: 8px;
+      background: var(--bg3);
+      border-radius: 8px;
+      font-size: 0.9em;
+    }
+
+    /* Result */
+    .result-screen {
+      text-align: center;
+      padding-top: 30px;
+    }
+
+    .result-emoji {
+      font-size: 4em;
+      margin-bottom: 12px;
+    }
+
+    .result-text {
+      font-size: 1.1em;
+      margin-bottom: 5px;
+    }
+
+    .result-sub {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .xp-reward {
+      background: var(--bg2);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #333;
+    }
+
+    .xp-bar-container {
+      background: #333;
+      border-radius: 10px;
+      height: 18px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .xp-bar {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #9b59b6, #e056a0);
+      transition: width 0.8s ease;
+    }
+
+    .floor-info {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85em;
+      margin-bottom: 10px;
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: #555;
+      padding: 30px;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TITLE SCREEN -->
+  <div id="screen-title" class="screen active">
+    <div style="text-align:center; padding-top: 50px;">
+      <div style="font-size: 4em;">⚔️</div>
+      <h1 style="font-size: 2.3em; margin-top: 10px;">Dungeon Quest</h1>
+      <p class="subtitle">Un RPG estilo D&D</p>
+      <div style="margin-top: 35px;">
+        <button class="btn btn-primary" onclick="newGame()">🎲 Nueva Aventura</button>
+        <button class="btn btn-secondary" style="margin-top:10px;" onclick="loadGame()" id="btn-continue">📜
+          Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARACTER CREATION -->
+  <div id="screen-create" class="screen">
+    <h1>⚔️ Crea tu Héroe</h1>
+    <p class="subtitle">Forja tu destino en la mazmorra</p>
+    <div class="form-group">
+      <label>🏷️ Nombre del Héroe</label>
+      <input type="text" id="char-name" placeholder="Ej: Thorin, Luna, Kael..." maxlength="20">
+    </div>
+    <h2>🛡️ Clase</h2>
+    <div class="class-grid">
+      <div class="class-card" onclick="selectClass('guerrero')" id="class-guerrero">
+        <div class="emoji">⚔️</div>
+        <div class="name">Guerrero</div>
+        <div class="desc">+2 FUE, +1 RES</div>
+      </div>
+      <div class="class-card" onclick="selectClass('picaro')" id="class-picaro">
+        <div class="emoji">🗡️</div>
+        <div class="name">Pícaro</div>
+        <div class="desc">+2 AGI, +1 FUE</div>
+      </div>
+      <div class="class-card" onclick="selectClass('mago')" id="class-mago">
+        <div class="emoji">🧙</div>
+        <div class="name">Mago</div>
+        <div class="desc">+3 ENE</div>
+      </div>
+      <div class="class-card" onclick="selectClass('paladin')" id="class-paladin">
+        <div class="emoji">🛡️</div>
+        <div class="name">Paladín</div>
+        <div class="desc">+2 RES, +1 ENE</div>
+      </div>
+    </div>
+    <h2>📊 Estadísticas</h2>
+    <div class="points-left">Puntos disponibles: <span id="points-left">8</span></div>
+    <div id="stats-container"></div>
+    <button class="btn btn-primary" id="btn-create" onclick="createCharacter()" disabled>🎲 ¡Comenzar Aventura!</button>
+  </div>
+
+  <!-- DUNGEON / BATTLE -->
+  <div id="screen-dungeon" class="screen">
+    <div class="floor-info">🏰 Piso <span id="floor-num">1</span> — <span id="floor-name"></span></div>
+    <div class="player-hud">
+      <span id="hud-name">Héroe Nv.1</span>
+      <span class="hud-gold">🪙 <span id="hud-gold">0</span></span>
+      <span style="cursor:pointer" onclick="showScreen('screen-inventory')">🎒</span>
+    </div>
+    <div class="battle-area">
+      <div class="entity">
+        <div class="entity-header">
+          <span class="entity-name" id="monster-name">Slime</span>
+          <span class="entity-level" id="monster-level">Nv. 1</span>
+        </div>
+        <div class="hp-bar-container">
+          <div class="hp-bar" id="monster-hp-bar" style="width:100%"></div>
+          <span class="hp-text" id="monster-hp-text">30/30</span>
+        </div>
+        <div class="monster-sprite" id="monster-sprite">🟢</div>
+      </div>
+      <hr class="divider">
+      <div class="entity">
+        <div class="entity-header">
+          <span class="entity-name" id="player-name-battle">Héroe</span>
+          <span class="entity-level" id="player-level-battle">Nv. 1</span>
+        </div>
+        <div class="hp-bar-container">
+          <div class="hp-bar player" id="player-hp-bar" style="width:100%"></div>
+          <span class="hp-text" id="player-hp-text">100/100</span>
+        </div>
+        <div class="energy-bar-container">
+          <div class="energy-bar" id="player-energy-bar" style="width:100%"></div>
+          <span class="energy-text" id="player-energy-text">⚡ 20/20</span>
+        </div>
+      </div>
+    </div>
+    <div class="battle-log" id="battle-log"></div>
+    <div class="battle-actions" id="battle-actions">
+      <button class="battle-btn" onclick="doAction('attack')">
+        <span class="btn-emoji">⚔️</span> Atacar
+      </button>
+      <button class="battle-btn" onclick="doAction('skill')">
+        <span class="btn-emoji">✨</span> Habilidad
+        <span class="btn-cost">5 ⚡</span>
+      </button>
+      <button class="battle-btn" onclick="doAction('defend')">
+        <span class="btn-emoji">🛡️</span> Defender
+      </button>
+      <button class="battle-btn" onclick="doAction('potion')">
+        <span class="btn-emoji">🧪</span> Poción
+        <span class="btn-cost" id="potion-count">x3</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div id="screen-inventory" class="screen">
+    <h1>🎒 Inventario</h1>
+    <div class="player-hud" style="margin-top:10px;">
+      <span id="inv-name">Héroe Nv.1</span>
+      <span class="hud-gold">🪙 <span id="inv-gold">0</span></span>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchInvTab('items')" id="tab-items">🎒 Objetos</button>
+      <button class="tab" onclick="switchInvTab('equip')" id="tab-equip">⚔️ Equipo</button>
+      <button class="tab" onclick="switchInvTab('stats')" id="tab-stats">📊 Stats</button>
+    </div>
+    <div id="inv-content"></div>
+    <button class="btn btn-secondary" onclick="returnFromInventory()" style="margin-top:15px;">← Volver</button>
+  </div>
+
+  <!-- SHOP -->
+  <div id="screen-shop" class="screen">
+    <div class="shop-header">
+      <div class="shop-keeper">🧝</div>
+      <h2 style="margin-bottom:5px;">Tienda del Mercader</h2>
+      <div class="shop-gold">🪙 <span id="shop-gold">0</span></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchShopTab('buy')" id="stab-buy">🛒 Comprar</button>
+      <button class="tab" onclick="switchShopTab('sell')" id="stab-sell">💰 Vender</button>
+    </div>
+    <div id="shop-content"></div>
+    <button class="btn btn-primary" onclick="leaveShop()">⬆️ Siguiente Piso</button>
+    <button class="btn btn-secondary" onclick="showScreen('screen-inventory')">🎒 Inventario</button>
+  </div>
+
+  <!-- LOOT OVERLAY -->
+  <div class="loot-overlay" id="loot-overlay">
+    <div class="loot-box">
+      <div class="loot-title">🎁 ¡Botín!</div>
+      <div class="loot-items" id="loot-items"></div>
+      <button class="btn btn-primary" onclick="closeLoot()">Recoger Todo</button>
+    </div>
+  </div>
+
+  <!-- VICTORY -->
+  <div id="screen-victory" class="screen">
+    <div class="result-screen">
+      <div class="result-emoji">🏆</div>
+      <div class="result-text" style="color: var(--gold);">¡Victoria!</div>
+      <div class="result-sub" id="victory-text"></div>
+      <div class="xp-reward">
+        <div>+<span id="xp-gained">0</span> XP</div>
+        <div style="font-size:0.85em; color:var(--muted); margin-top:5px;">
+          Nv. <span id="victory-level">1</span> — <span id="xp-current">0</span>/<span id="xp-needed">100</span> XP
+        </div>
+        <div class="xp-bar-container">
+          <div class="xp-bar" id="xp-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div id="levelup-msg" style="display:none; color:var(--gold); font-size:1.1em; margin-bottom:12px;">
+        🎉 ¡Subiste a nivel <span id="new-level">2</span>!
+      </div>
+      <button class="btn btn-primary" onclick="goToShop()">🛒 Ir a la Tienda</button>
+      <button class="btn btn-secondary" onclick="saveAndQuit()">💾 Guardar y Salir</button>
+    </div>
+  </div>
+
+  <!-- DEATH -->
+  <div id="screen-death" class="screen">
+    <div class="result-screen">
+      <div class="result-emoji">💀</div>
+      <div class="result-text" style="color: var(--accent);">Has Caído...</div>
+      <div class="result-sub" id="death-text">La mazmorra reclama otra alma</div>
+      <div style="margin-bottom:20px; color:var(--muted);">
+        Llegaste al piso <span id="death-floor">1</span> — Nivel <span id="death-level">1</span>
+      </div>
+      <button class="btn btn-primary" onclick="newGame()">🎲 Nuevo Héroe</button>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // ITEM DATABASE
+    // ==========================================
+    const RARITIES = ['comun', 'poco-comun', 'raro', 'epico', 'legendario'];
+    const RARITY_NAMES = { 'comun': 'Común', 'poco-comun': 'Poco Común', 'raro': 'Raro', 'epico': 'Épico', 'legendario': 'Legendario' };
+    const RARITY_MULT = { 'comun': 1, 'poco-comun': 1.5, 'raro': 2.2, 'epico': 3, 'legendario': 4.5 };
+
+    // Equipment templates: { id, name, icon, slot, rarity, stats:{}, price }
+    const EQUIPMENT_DB = [
+      // === WEAPONS ===
+      { id: 'espada_oxidada', name: 'Espada Oxidada', icon: '🗡️', slot: 'arma', rarity: 'comun', stats: { fuerza: 1 }, price: 15 },
+      { id: 'daga_afilada', name: 'Daga Afilada', icon: '🔪', slot: 'arma', rarity: 'comun', stats: { agilidad: 1, fuerza: 1 }, price: 20 },
+      { id: 'baston_aprendiz', name: 'Bastón de Aprendiz', icon: '🪄', slot: 'arma', rarity: 'comun', stats: { energia: 2 }, price: 20 },
+      { id: 'espada_acero', name: 'Espada de Acero', icon: '⚔️', slot: 'arma', rarity: 'poco-comun', stats: { fuerza: 3 }, price: 45 },
+      { id: 'arco_cazador', name: 'Arco del Cazador', icon: '🏹', slot: 'arma', rarity: 'poco-comun', stats: { agilidad: 2, fuerza: 1 }, price: 50 },
+      { id: 'baston_arcano', name: 'Bastón Arcano', icon: '🪄', slot: 'arma', rarity: 'poco-comun', stats: { energia: 3, fuerza: 1 }, price: 55 },
+      { id: 'hacha_guerra', name: 'Hacha de Guerra', icon: '🪓', slot: 'arma', rarity: 'raro', stats: { fuerza: 5, resistencia: 1 }, price: 100 },
+      { id: 'katana_sombra', name: 'Katana de las Sombras', icon: '⚔️', slot: 'arma', rarity: 'raro', stats: { fuerza: 3, agilidad: 4 }, price: 110 },
+      { id: 'cetro_tormenta', name: 'Cetro de la Tormenta', icon: '🪄', slot: 'arma', rarity: 'epico', stats: { energia: 6, fuerza: 2 }, price: 200 },
+      { id: 'espada_dragon', name: 'Espada del Dragón', icon: '🗡️', slot: 'arma', rarity: 'epico', stats: { fuerza: 7, resistencia: 2 }, price: 220 },
+      { id: 'excalibur', name: 'Excalibur', icon: '⚔️', slot: 'arma', rarity: 'legendario', stats: { fuerza: 8, agilidad: 3, resistencia: 2 }, price: 500 },
+
+      // === HELMETS ===
+      { id: 'gorro_cuero', name: 'Gorro de Cuero', icon: '🪖', slot: 'casco', rarity: 'comun', stats: { resistencia: 1 }, price: 12 },
+      { id: 'yelmo_hierro', name: 'Yelmo de Hierro', icon: '🪖', slot: 'casco', rarity: 'poco-comun', stats: { resistencia: 2 }, price: 35 },
+      { id: 'capucha_sombras', name: 'Capucha de las Sombras', icon: '🪖', slot: 'casco', rarity: 'raro', stats: { agilidad: 3, resistencia: 1 }, price: 80 },
+      { id: 'corona_sabio', name: 'Corona del Sabio', icon: '👑', slot: 'casco', rarity: 'epico', stats: { energia: 4, resistencia: 2 }, price: 170 },
+      { id: 'yelmo_rey', name: 'Yelmo del Rey Caído', icon: '👑', slot: 'casco', rarity: 'legendario', stats: { resistencia: 5, fuerza: 3, energia: 2 }, price: 400 },
+
+      // === ARMOR ===
+      { id: 'tunica_tela', name: 'Túnica de Tela', icon: '👕', slot: 'armadura', rarity: 'comun', stats: { resistencia: 1 }, price: 15 },
+      { id: 'armadura_cuero', name: 'Armadura de Cuero', icon: '🦺', slot: 'armadura', rarity: 'poco-comun', stats: { resistencia: 2, agilidad: 1 }, price: 40 },
+      { id: 'cota_malla', name: 'Cota de Malla', icon: '🦺', slot: 'armadura', rarity: 'raro', stats: { resistencia: 4 }, price: 90 },
+      { id: 'armadura_placas', name: 'Armadura de Placas', icon: '🦺', slot: 'armadura', rarity: 'epico', stats: { resistencia: 6, fuerza: 1 }, price: 190 },
+      { id: 'armadura_celestial', name: 'Armadura Celestial', icon: '🦺', slot: 'armadura', rarity: 'legendario', stats: { resistencia: 7, energia: 3, agilidad: 2 }, price: 450 },
+      { id: 'armadura_dragon_escamosa', name: 'Armadura de Dragón Escamoso', icon: '🦺', slot: 'armadura', rarity: 'legendario', stats: { resistencia: 8, energia: 1, fuerza: 10, agilidad: 2 }, price: 450 },
+      // === RINGS ===
+      { id: 'anillo_cobre', name: 'Anillo de Cobre', icon: '💍', slot: 'anillo', rarity: 'comun', stats: { fuerza: 1 }, price: 10 },
+      { id: 'anillo_plata', name: 'Anillo de Plata', icon: '💍', slot: 'anillo', rarity: 'poco-comun', stats: { agilidad: 2 }, price: 30 },
+      { id: 'anillo_rubi', name: 'Anillo de Rubí', icon: '💍', slot: 'anillo', rarity: 'raro', stats: { fuerza: 3, energia: 1 }, price: 75 },
+      { id: 'anillo_vacio', name: 'Anillo del Vacío', icon: '💍', slot: 'anillo', rarity: 'epico', stats: { energia: 4, agilidad: 2 }, price: 160 },
+      { id: 'anillo_inmortal', name: 'Anillo del Inmortal', icon: '💍', slot: 'anillo', rarity: 'legendario', stats: { resistencia: 4, fuerza: 3, agilidad: 3 }, price: 380 },
+
+      // === NECKLACES ===
+      { id: 'collar_hueso', name: 'Collar de Hueso', icon: '📿', slot: 'collar', rarity: 'comun', stats: { energia: 1 }, price: 10 },
+      { id: 'amuleto_lobo', name: 'Amuleto del Lobo', icon: '📿', slot: 'collar', rarity: 'poco-comun', stats: { fuerza: 1, agilidad: 1 }, price: 32 },
+      { id: 'collar_zafiro', name: 'Collar de Zafiro', icon: '📿', slot: 'collar', rarity: 'raro', stats: { energia: 3, resistencia: 1 }, price: 78 },
+      { id: 'talismán_dragon', name: 'Talismán del Dragón', icon: '📿', slot: 'collar', rarity: 'epico', stats: { fuerza: 3, energia: 3 }, price: 165 },
+      { id: 'collar_eternidad', name: 'Collar de la Eternidad', icon: '📿', slot: 'collar', rarity: 'legendario', stats: { fuerza: 2, agilidad: 2, resistencia: 2, energia: 4 }, price: 420 },
+    ];
+
+    // Junk items (sell-only loot)
+    const JUNK_DB = [
+      { id: 'hueso_viejo', name: 'Hueso Viejo', icon: '🦴', rarity: 'comun', sellPrice: 3 },
+      { id: 'piedra_runa', name: 'Piedra con Runas', icon: '🪨', rarity: 'comun', sellPrice: 5 },
+      { id: 'moneda_antigua', name: 'Moneda Antigua', icon: '🪙', rarity: 'comun', sellPrice: 8 },
+      { id: 'ojo_cristal', name: 'Ojo de Cristal', icon: '🔮', rarity: 'poco-comun', sellPrice: 12 },
+      { id: 'pluma_fenix', name: 'Pluma de Fénix', icon: '🪶', rarity: 'poco-comun', sellPrice: 15 },
+      { id: 'colmillo_bestia', name: 'Colmillo de Bestia', icon: '🦷', rarity: 'poco-comun', sellPrice: 18 },
+      { id: 'gema_bruta', name: 'Gema en Bruto', icon: '💎', rarity: 'raro', sellPrice: 30 },
+      { id: 'esencia_oscura', name: 'Esencia Oscura', icon: '🌑', rarity: 'raro', sellPrice: 35 },
+      { id: 'corazon_dragon', name: 'Corazón de Dragón', icon: '❤️‍🔥', rarity: 'epico', sellPrice: 60 },
+      { id: 'reliquia_antigua', name: 'Reliquia Antigua', icon: '🏺', rarity: 'epico', sellPrice: 75 },
+      { id: 'fragmento_alma', name: 'Fragmento de Alma', icon: '✨', rarity: 'legendario', sellPrice: 120 },
+    ];
+
+    // Consumables
+    const CONSUMABLE_DB = [
+      { id: 'pocion_hp', name: 'Poción de Vida', icon: '❤️', rarity: 'comun', effect: 'hp', value: 0.4, price: 20, desc: 'Restaura 40% HP' },
+      { id: 'pocion_hp_mayor', name: 'Poción de Vida Mayor', icon: '❤️', rarity: 'poco-comun', effect: 'hp', value: 0.7, price: 45, desc: 'Restaura 70% HP' },
+      { id: 'pocion_energia', name: 'Poción de Energía', icon: '⚡', rarity: 'comun', effect: 'energy', value: 0.5, price: 18, desc: 'Restaura 50% energía' },
+      { id: 'elixir_guerra', name: 'Elixir de Guerra', icon: '💪', rarity: 'raro', effect: 'buff_fuerza', value: 3, price: 60, desc: '+3 FUE por 3 turnos' },
+      { id: 'elixir_sombra', name: 'Elixir de Sombra', icon: '🏃', rarity: 'raro', effect: 'buff_agilidad', value: 3, price: 60, desc: '+3 AGI por 3 turnos' },
+    ];
+
+    // ==========================================
+    // MONSTERS
+    // ==========================================
+    const MONSTERS = [
+      { name: 'Slime', sprite: '🟢', baseHp: 25, baseDmg: 4, xp: 20, gold: 8 },
+      { name: 'Goblin', sprite: '👺', baseHp: 35, baseDmg: 6, xp: 30, gold: 12 },
+      { name: 'Esqueleto', sprite: '💀', baseHp: 40, baseDmg: 8, xp: 40, gold: 15 },
+      { name: 'Murciélago Gigante', sprite: '🦇', baseHp: 30, baseDmg: 7, xp: 25, gold: 10 },
+      { name: 'Orco', sprite: '👹', baseHp: 55, baseDmg: 10, xp: 50, gold: 20 },
+      { name: 'Araña Venenosa', sprite: '🕷️', baseHp: 35, baseDmg: 9, xp: 35, gold: 14 },
+      { name: 'Hechicero Oscuro', sprite: '🧙‍♂️', baseHp: 45, baseDmg: 12, xp: 55, gold: 25 },
+      { name: 'Minotauro', sprite: '🐂', baseHp: 70, baseDmg: 14, xp: 65, gold: 30 },
+      { name: 'Dragón Joven', sprite: '🐉', baseHp: 90, baseDmg: 16, xp: 80, gold: 40 },
+      { name: 'Lich Rey', sprite: '👑', baseHp: 120, baseDmg: 20, xp: 100, gold: 60 },
+      { name: 'Dragón', sprite: '🐉', baseHp: 600, baseDmg: 100, xp: 600, gold: 600 },
+    ];
+
+    const FLOOR_NAMES = [
+      'Entrada Oscura', 'Catacumbas', 'Cuevas Húmedas', 'Minas Abandonadas',
+      'Salón de los Huesos', 'Río Subterráneo', 'Forja del Diablo',
+      'Biblioteca Maldita', 'Guarida del Dragón', 'Trono del Lich'
+    ];
+
+    const CLASS_BONUSES = {
+      guerrero: { fuerza: 2, agilidad: 0, resistencia: 1, energia: 0 },
+      picaro: { fuerza: 1, agilidad: 2, resistencia: 0, energia: 0 },
+      mago: { fuerza: 0, agilidad: 0, resistencia: 0, energia: 3 },
+      paladin: { fuerza: 0, agilidad: 0, resistencia: 2, energia: 1 }
+    };
+
+    const STAT_DEFS = [
+      { id: 'fuerza', name: '💪 Fuerza', desc: 'Daño físico' },
+      { id: 'agilidad', name: '🏃 Agilidad', desc: 'Esquivar y críticos' },
+      { id: 'resistencia', name: '🛡️ Resistencia', desc: 'Vida máxima y defensa' },
+      { id: 'energia', name: '⚡ Energía', desc: 'Habilidades especiales' }
+    ];
+
+    const SLOT_NAMES = { arma: '⚔️ Arma', casco: '🪖 Casco', armadura: '🦺 Armadura', anillo: '💍 Anillo', collar: '📿 Collar' };
+
+    // ==========================================
+    // GAME STATE
+    // ==========================================
+    let player = null;
+    let monster = null;
+    let floor = 1;
+    let battleLog = [];
+    let isPlayerTurn = true;
+    let pendingLoot = [];
+    let shopStock = [];
+    let selectedClass = null;
+    let statPoints = { fuerza: 1, agilidad: 1, resistencia: 1, energia: 1 };
+    let pointsRemaining = 8;
+    let currentInvTab = 'items';
+    let currentShopTab = 'buy';
+    let returnScreen = 'screen-dungeon';
+    let buffs = []; // {stat, value, turns}
+
+    // ==========================================
+    // SCREENS
+    // ==========================================
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      if (id === 'screen-inventory') renderInventory();
+    }
+
+    // ==========================================
+    // CHARACTER CREATION
+    // ==========================================
+    function newGame() {
+      selectedClass = null;
+      statPoints = { fuerza: 1, agilidad: 1, resistencia: 1, energia: 1 };
+      pointsRemaining = 8;
+      document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('char-name').value = '';
+      document.getElementById('points-left').textContent = '8';
+      initStatsUI();
+      showScreen('screen-create');
+    }
+
+    function initStatsUI() {
+      const container = document.getElementById('stats-container');
+      container.innerHTML = '';
+      STAT_DEFS.forEach(stat => {
+        const bonus = selectedClass ? (CLASS_BONUSES[selectedClass][stat.id] || 0) : 0;
+        const total = statPoints[stat.id] + bonus;
+        const bonusText = bonus > 0 ? ` <span style="color:var(--green)">(+${bonus})</span>` : '';
+        container.innerHTML += `
+      <div class="stat-row">
+        <div class="stat-info"><div class="stat-name">${stat.name}${bonusText}</div><div class="stat-desc">${stat.desc}</div></div>
+        <div class="stat-controls">
+          <button onclick="changeStat('${stat.id}',-1)" id="dec-${stat.id}">−</button>
+          <span class="stat-value" id="val-${stat.id}">${total}</span>
+          <button onclick="changeStat('${stat.id}',1)" id="inc-${stat.id}">+</button>
+        </div>
+      </div>`;
+      });
+      updateStatButtons();
+    }
+
+    function changeStat(id, delta) {
+      const nv = statPoints[id] + delta, np = pointsRemaining - delta;
+      if (nv < 1 || np < 0 || np > 8) return;
+      statPoints[id] = nv; pointsRemaining = np;
+      document.getElementById('points-left').textContent = pointsRemaining;
+      initStatsUI(); checkCreateReady();
+    }
+
+    function updateStatButtons() {
+      STAT_DEFS.forEach(s => {
+        document.getElementById('dec-' + s.id).disabled = statPoints[s.id] <= 1;
+        document.getElementById('inc-' + s.id).disabled = pointsRemaining <= 0;
+      });
+    }
+
+    function selectClass(cls) {
+      selectedClass = cls;
+      document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('class-' + cls).classList.add('selected');
+      initStatsUI(); checkCreateReady();
+    }
+
+    function checkCreateReady() {
+      document.getElementById('btn-create').disabled = !(document.getElementById('char-name').value.trim() && selectedClass);
+    }
+
+    function createCharacter() {
+      const name = document.getElementById('char-name').value.trim();
+      if (!name || !selectedClass) return;
+      const bonus = CLASS_BONUSES[selectedClass];
+      const stats = {};
+      STAT_DEFS.forEach(s => stats[s.id] = statPoints[s.id] + (bonus[s.id] || 0));
+
+      player = {
+        name, class: selectedClass, level: 1, xp: 0, xpToLevel: 100, gold: 0,
+        baseStats: { ...stats },
+        equipment: { arma: null, casco: null, armadura: null, anillo: null, collar: null },
+        inventory: [], // {type:'equipment'|'junk'|'consumable', data:{...}, qty:1}
+        maxHp: 80 + stats.resistencia * 10, hp: 0,
+        maxEnergy: 10 + stats.energia * 5, energy: 0,
+        potions: 3, defending: false
+      };
+      player.hp = player.maxHp; player.energy = player.maxEnergy;
+      // Start with 3 basic health potions in inventory
+      addToInventory({ type: 'consumable', data: { ...CONSUMABLE_DB[0] }, qty: 3 });
+      floor = 1; buffs = [];
+      startBattle();
+    }
+
+    // ==========================================
+    // STATS CALCULATION (base + equipment + buffs)
+    // ==========================================
+    function getEffectiveStats() {
+      const s = { ...player.baseStats };
+      // Equipment bonuses
+      Object.values(player.equipment).forEach(item => {
+        if (item && item.stats) {
+          Object.entries(item.stats).forEach(([k, v]) => { s[k] = (s[k] || 0) + v; });
+        }
+      });
+      // Buff bonuses
+      buffs.forEach(b => { s[b.stat] = (s[b.stat] || 0) + b.value; });
+      return s;
+    }
+
+    function recalcDerived() {
+      const s = getEffectiveStats();
+      player.maxHp = 80 + s.resistencia * 10;
+      player.maxEnergy = 10 + s.energia * 5;
+      if (player.hp > player.maxHp) player.hp = player.maxHp;
+      if (player.energy > player.maxEnergy) player.energy = player.maxEnergy;
+    }
+
+    // ==========================================
+    // INVENTORY MANAGEMENT
+    // ==========================================
+    function addToInventory(item) {
+      // Stack consumables and junk
+      if (item.type === 'consumable' || item.type === 'junk') {
+        const existing = player.inventory.find(i => i.type === item.type && i.data.id === item.data.id);
+        if (existing) { existing.qty += (item.qty || 1); return; }
+      }
+      player.inventory.push({ type: item.type, data: { ...item.data }, qty: item.qty || 1 });
+    }
+
+    function removeFromInventory(index, qty = 1) {
+      const item = player.inventory[index];
+      if (!item) return;
+      item.qty -= qty;
+      if (item.qty <= 0) player.inventory.splice(index, 1);
+    }
+
+    function equipItem(invIndex) {
+      const item = player.inventory[invIndex];
+      if (!item || item.type !== 'equipment') return;
+      const slot = item.data.slot;
+      // Unequip current if any
+      if (player.equipment[slot]) {
+        addToInventory({ type: 'equipment', data: { ...player.equipment[slot] } });
+      }
+      player.equipment[slot] = { ...item.data };
+      player.inventory.splice(invIndex, 1);
+      recalcDerived();
+      renderInventory();
+    }
+
+    function unequipItem(slot) {
+      if (!player.equipment[slot]) return;
+      addToInventory({ type: 'equipment', data: { ...player.equipment[slot] } });
+      player.equipment[slot] = null;
+      recalcDerived();
+      renderInventory();
+    }
+
+    function sellItem(invIndex) {
+      const item = player.inventory[invIndex];
+      if (!item) return;
+      let price = 0;
+      if (item.type === 'junk') price = item.data.sellPrice;
+      else if (item.type === 'equipment') price = Math.floor(item.data.price * 0.4);
+      else if (item.type === 'consumable') price = Math.floor(item.data.price * 0.3);
+      player.gold += price * (item.type === 'equipment' ? 1 : 1);
+      removeFromInventory(invIndex, item.type === 'equipment' ? 1 : 1);
+      renderInventory();
+      updateAllHUD();
+    }
+
+    function useConsumable(invIndex) {
+      const item = player.inventory[invIndex];
+      if (!item || item.type !== 'consumable') return;
+      const d = item.data;
+      switch (d.effect) {
+        case 'hp':
+          const heal = Math.floor(player.maxHp * d.value);
+          player.hp = Math.min(player.maxHp, player.hp + heal);
+          addLog(`❤️ ${d.name} → +${heal} HP`, 'heal');
+          break;
+        case 'energy':
+          const en = Math.floor(player.maxEnergy * d.value);
+          player.energy = Math.min(player.maxEnergy, player.energy + en);
+          addLog(`⚡ ${d.name} → +${en} energía`, 'info');
+          break;
+        case 'buff_fuerza':
+          buffs.push({ stat: 'fuerza', value: d.value, turns: 3 });
+          addLog(`💪 ${d.name} → +${d.value} FUE (3 turnos)`, 'gold');
+          recalcDerived();
+          break;
+        case 'buff_agilidad':
+          buffs.push({ stat: 'agilidad', value: d.value, turns: 3 });
+          addLog(`🏃 ${d.name} → +${d.value} AGI (3 turnos)`, 'gold');
+          recalcDerived();
+          break;
+      }
+      removeFromInventory(invIndex);
+      updateBattleUI();
+    }
+
+    // ==========================================
+    // INVENTORY UI
+    // ==========================================
+    function switchInvTab(tab) {
+      currentInvTab = tab;
+      document.querySelectorAll('#screen-inventory .tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      renderInventory();
+    }
+
+    function renderInventory() {
+      if (!player) return;
+      document.getElementById('inv-name').textContent = `${player.name} Nv.${player.level}`;
+      document.getElementById('inv-gold').textContent = player.gold;
+
+      const el = document.getElementById('inv-content');
+
+      if (currentInvTab === 'items') {
+        if (player.inventory.length === 0) {
+          el.innerHTML = '<div class="empty-msg">Tu mochila está vacía</div>';
+          return;
+        }
+        let html = '<div class="inv-grid">';
+        player.inventory.forEach((item, i) => {
+          const r = item.data.rarity || 'comun';
+          const rn = RARITY_NAMES[r];
+          let actions = '';
+          let desc = '';
+          if (item.type === 'equipment') {
+            const statsText = Object.entries(item.data.stats).map(([k, v]) => `+${v} ${k.substring(0, 3).toUpperCase()}`).join(', ');
+            desc = `${SLOT_NAMES[item.data.slot]?.split(' ')[1]} · ${statsText}`;
+            const sellP = Math.floor(item.data.price * 0.4);
+            actions = `<button class="item-btn equip" onclick="equipItem(${i})">Equipar</button>
+                   <button class="item-btn sell" onclick="sellItem(${i})">💰${sellP}</button>`;
+          } else if (item.type === 'junk') {
+            desc = `Basura · Vender por ${item.data.sellPrice}🪙`;
+            actions = `<button class="item-btn sell" onclick="sellItem(${i})">💰${item.data.sellPrice}</button>`;
+          } else if (item.type === 'consumable') {
+            desc = item.data.desc;
+            const inBattle = document.getElementById('screen-dungeon').classList.contains('active') || returnScreen === 'screen-dungeon';
+            if (inBattle) actions = `<button class="item-btn use" onclick="useConsumable(${i}); returnFromInventory();">Usar</button>`;
+            const sellP = Math.floor(item.data.price * 0.3);
+            actions += `<button class="item-btn sell" onclick="sellItem(${i})">💰${sellP}</button>`;
+          }
+          const qtyText = item.qty > 1 ? ` x${item.qty}` : '';
+          html += `<div class="item-card rarity-${r}">
+        <div class="item-icon">${item.data.icon}</div>
+        <div class="item-info">
+          <div class="item-name rarity-${r}">${item.data.name}${qtyText}</div>
+          <div class="item-desc">${rn} · ${desc}</div>
+        </div>
+        <div class="item-actions">${actions}</div>
+      </div>`;
+        });
+        html += '</div>';
+        el.innerHTML = html;
+
+      } else if (currentInvTab === 'equip') {
+        let html = '<div class="equip-slots">';
+        Object.entries(SLOT_NAMES).forEach(([slot, label]) => {
+          const item = player.equipment[slot];
+          if (item) {
+            const r = item.rarity || 'comun';
+            const statsText = Object.entries(item.stats).map(([k, v]) => `+${v} ${k.substring(0, 3).toUpperCase()}`).join(', ');
+            html += `<div class="equip-slot filled">
+          <div class="slot-label">${label}</div>
+          <div class="item-icon">${item.icon}</div>
+          <div class="item-info">
+            <div class="item-name rarity-${r}">${item.name}</div>
+            <div class="item-desc">${statsText}</div>
+          </div>
+          <button class="item-btn unequip" onclick="unequipItem('${slot}')">Quitar</button>
+        </div>`;
+          } else {
+            html += `<div class="equip-slot">
+          <div class="slot-label">${label}</div>
+          <div class="slot-empty">— Vacío —</div>
+        </div>`;
+          }
+        });
+        html += '</div>';
+        el.innerHTML = html;
+
+      } else if (currentInvTab === 'stats') {
+        const s = getEffectiveStats();
+        const bs = player.baseStats;
+        let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+        STAT_DEFS.forEach(sd => {
+          const base = bs[sd.id];
+          const total = s[sd.id];
+          const bonus = total - base;
+          const bonusText = bonus > 0 ? ` <span style="color:var(--green)">(+${bonus})</span>` : '';
+          html += `<div class="stat-row">
+        <div class="stat-name">${sd.name}</div>
+        <div class="stat-value">${total}${bonusText}</div>
+      </div>`;
+        });
+        html += `<div class="stat-row"><div class="stat-name">❤️ HP</div><div class="stat-value">${player.hp}/${player.maxHp}</div></div>`;
+        html += `<div class="stat-row"><div class="stat-name">⚡ Energía</div><div class="stat-value">${player.energy}/${player.maxEnergy}</div></div>`;
+        html += `<div class="stat-row"><div class="stat-name">🪙 Oro</div><div class="stat-value">${player.gold}</div></div>`;
+        html += `<div class="stat-row"><div class="stat-name">📊 XP</div><div class="stat-value">${player.xp}/${player.xpToLevel}</div></div>`;
+        html += '</div>';
+        el.innerHTML = html;
+      }
+    }
+
+    function returnFromInventory() {
+      showScreen(returnScreen);
+      if (returnScreen === 'screen-dungeon') updateBattleUI();
+      else if (returnScreen === 'screen-shop') renderShop();
+    }
+
+    // ==========================================
+    // BATTLE
+    // ==========================================
+    function startBattle() {
+      const idx = Math.min(floor - 1, MONSTERS.length - 1);
+      const t = MONSTERS[idx];
+      const scale = 1 + (floor - 1) * 0.15;
+      monster = {
+        name: t.name, sprite: t.sprite,
+        maxHp: Math.floor(t.baseHp * scale), hp: Math.floor(t.baseHp * scale),
+        dmg: Math.floor(t.baseDmg * scale), xp: Math.floor(t.xp * scale), gold: Math.floor(t.gold * scale)
+      };
+      player.defending = false;
+      isPlayerTurn = true;
+      battleLog = [];
+      returnScreen = 'screen-dungeon';
+      addLog(`🏰 Piso ${floor}: ¡Un ${monster.name} aparece!`, 'info');
+      updateBattleUI();
+      showScreen('screen-dungeon');
+    }
+
+    function updateBattleUI() {
+      document.getElementById('floor-num').textContent = floor;
+      document.getElementById('floor-name').textContent = FLOOR_NAMES[Math.min(floor - 1, FLOOR_NAMES.length - 1)];
+      document.getElementById('monster-name').textContent = monster.name;
+      document.getElementById('monster-level').textContent = `Nv. ${Math.max(1, floor)}`;
+      document.getElementById('monster-sprite').textContent = monster.sprite;
+      document.getElementById('monster-hp-bar').style.width = (monster.hp / monster.maxHp * 100) + '%';
+      document.getElementById('monster-hp-text').textContent = `${Math.max(0, monster.hp)}/${monster.maxHp}`;
+      document.getElementById('player-name-battle').textContent = player.name;
+      document.getElementById('player-level-battle').textContent = `Nv. ${player.level}`;
+      document.getElementById('player-hp-bar').style.width = (player.hp / player.maxHp * 100) + '%';
+      document.getElementById('player-hp-text').textContent = `${Math.max(0, player.hp)}/${player.maxHp}`;
+      document.getElementById('player-energy-bar').style.width = (player.energy / player.maxEnergy * 100) + '%';
+      document.getElementById('player-energy-text').textContent = `⚡ ${player.energy}/${player.maxEnergy}`;
+      const potions = player.inventory.find(i => i.type === 'consumable' && i.data.effect === 'hp');
+      document.getElementById('potion-count').textContent = `x${potions ? potions.qty : 0}`;
+      document.querySelectorAll('.battle-btn').forEach(b => b.disabled = !isPlayerTurn);
+      updateAllHUD();
+    }
+
+    function updateAllHUD() {
+      if (document.getElementById('hud-gold')) document.getElementById('hud-gold').textContent = player.gold;
+      if (document.getElementById('hud-name')) document.getElementById('hud-name').textContent = `${player.name} Nv.${player.level}`;
+    }
+
+    function addLog(text, type = '') {
+      battleLog.unshift({ text, type });
+      if (battleLog.length > 50) battleLog.pop();
+      const logEl = document.getElementById('battle-log');
+      logEl.innerHTML = battleLog.map(l => `<div class="log-entry log-${l.type}">${l.text}</div>`).join('');
+    }
+
+    function tickBuffs() {
+      buffs = buffs.map(b => ({ ...b, turns: b.turns - 1 })).filter(b => {
+        if (b.turns <= 0) { addLog(`⏳ Buff de ${b.stat} terminó`, 'info'); return false; }
+        return true;
+      });
+      recalcDerived();
+    }
+
+    function doAction(action) {
+      if (!isPlayerTurn) return;
+      player.defending = false;
+      const stats = getEffectiveStats();
+
+      switch (action) {
+        case 'attack': {
+          const crit = Math.random() < stats.agilidad * 0.04;
+          let dmg = Math.floor(stats.fuerza * 3 + Math.random() * 5);
+          if (crit) { dmg = Math.floor(dmg * 1.8); addLog('💥 ¡Golpe crítico!', 'gold'); }
+          monster.hp -= dmg;
+          addLog(`⚔️ ${player.name} ataca → ${dmg} daño`, 'dmg');
+          player.energy = Math.min(player.maxEnergy, player.energy + 2);
+          break;
+        }
+        case 'skill': {
+          if (player.energy < 5) { addLog('⚡ No tienes suficiente energía', 'info'); return; }
+          player.energy -= 5;
+          let dmg = 0;
+          switch (player.class) {
+            case 'guerrero': dmg = Math.floor(stats.fuerza * 5 + 10); addLog(`🔥 ¡Tajo Devastador! → ${dmg} daño`, 'dmg'); break;
+            case 'picaro': dmg = Math.floor(stats.agilidad * 4 + stats.fuerza * 2 + 8); addLog(`🌀 ¡Golpe Furtivo! → ${dmg} daño`, 'dmg'); break;
+            case 'mago': dmg = Math.floor(stats.energia * 6 + 12); addLog(`🔮 ¡Bola de Fuego! → ${dmg} daño`, 'dmg'); break;
+            case 'paladin':
+              dmg = Math.floor(stats.resistencia * 3 + stats.energia * 3 + 6);
+              const h = Math.floor(dmg * 0.3);
+              player.hp = Math.min(player.maxHp, player.hp + h);
+              addLog(`✨ ¡Golpe Sagrado! → ${dmg} daño, +${h} HP`, 'heal'); break;
+          }
+          monster.hp -= dmg;
+          break;
+        }
+        case 'defend': {
+          player.defending = true;
+          player.energy = Math.min(player.maxEnergy, player.energy + 4);
+          addLog(`🛡️ ${player.name} se defiende (+4 ⚡)`, 'info');
+          break;
+        }
+        case 'potion': {
+          // Use first HP consumable from inventory
+          const idx = player.inventory.findIndex(i => i.type === 'consumable' && (i.data.effect === 'hp'));
+          if (idx === -1) { addLog('🧪 No te quedan pociones', 'info'); return; }
+          useConsumable(idx);
+          break;
+        }
+      }
+
+      tickBuffs();
+
+      if (monster.hp <= 0) {
+        updateBattleUI();
+        setTimeout(() => generateLoot(), 600);
+        return;
+      }
+
+      isPlayerTurn = false;
+      updateBattleUI();
+      setTimeout(() => enemyTurn(), 800);
+    }
+
+    function enemyTurn() {
+      const stats = getEffectiveStats();
+      const dodge = Math.random() < stats.agilidad * 0.03;
+      if (dodge) {
+        addLog(`🏃 ${player.name} esquiva el ataque!`, 'info');
+      } else {
+        let dmg = Math.floor(monster.dmg + Math.random() * 4);
+        if (player.defending) {
+          dmg = Math.floor(dmg * (0.4 - stats.resistencia * 0.02));
+          dmg = Math.max(1, dmg);
+          addLog(`🛡️ Bloqueaste parte del golpe! -${dmg} HP`, 'dmg');
+        } else {
+          dmg = Math.max(1, dmg - Math.floor(stats.resistencia * 0.8));
+          addLog(`${monster.sprite} ${monster.name} ataca → -${dmg} HP`, 'dmg');
+        }
+        player.hp -= dmg;
+      }
+
+      if (player.hp <= 0) { updateBattleUI(); setTimeout(() => showDeath(), 600); return; }
+      isPlayerTurn = true;
+      updateBattleUI();
+    }
+
+    // ==========================================
+    // LOOT GENERATION
+    // ==========================================
+    function generateLoot() {
+      pendingLoot = [];
+      const goldDrop = monster.gold + Math.floor(Math.random() * monster.gold * 0.5);
+      pendingLoot.push({ type: 'gold', amount: goldDrop, display: `🪙 ${goldDrop} oro` });
+
+      // Junk drop: 60% chance
+      if (Math.random() < 0.6) {
+        const junkRarity = rollRarity(floor);
+        const candidates = JUNK_DB.filter(j => j.rarity === junkRarity);
+        if (candidates.length) {
+          const junk = candidates[Math.floor(Math.random() * candidates.length)];
+          pendingLoot.push({ type: 'junk', data: { ...junk }, display: `${junk.icon} ${junk.name} (${RARITY_NAMES[junk.rarity]})` });
+        }
+      }
+
+      // Equipment drop: 25% base, +2% per floor
+      if (Math.random() < 0.25 + floor * 0.02) {
+        const eqRarity = rollRarity(floor);
+        const candidates = EQUIPMENT_DB.filter(e => e.rarity === eqRarity);
+        if (candidates.length) {
+          const eq = candidates[Math.floor(Math.random() * candidates.length)];
+          pendingLoot.push({ type: 'equipment', data: { ...eq }, display: `${eq.icon} ${eq.name} (${RARITY_NAMES[eq.rarity]})` });
+        }
+      }
+
+      // Consumable drop: 20% chance
+      if (Math.random() < 0.2) {
+        const candidates = CONSUMABLE_DB.filter(c => {
+          if (c.rarity === 'raro' && floor < 4) return false;
+          return true;
+        });
+        const cons = candidates[Math.floor(Math.random() * candidates.length)];
+        pendingLoot.push({ type: 'consumable', data: { ...cons }, display: `${cons.icon} ${cons.name}` });
+      }
+
+      // Show loot popup
+      const lootEl = document.getElementById('loot-items');
+      lootEl.innerHTML = pendingLoot.map(l => `<div class="loot-item">${l.display}</div>`).join('');
+      document.getElementById('loot-overlay').classList.add('active');
+    }
+
+    function rollRarity(floorNum) {
+      const r = Math.random() * 100;
+      const legendaryChance = Math.min(2 + floorNum * 0.5, 8);
+      const epicChance = Math.min(5 + floorNum * 1, 15);
+      const rareChance = Math.min(15 + floorNum * 2, 30);
+      const uncommonChance = 35;
+      if (r < legendaryChance) return 'legendario';
+      if (r < legendaryChance + epicChance) return 'epico';
+      if (r < legendaryChance + epicChance + rareChance) return 'raro';
+      if (r < legendaryChance + epicChance + rareChance + uncommonChance) return 'poco-comun';
+      return 'comun';
+    }
+
+    function closeLoot() {
+      document.getElementById('loot-overlay').classList.remove('active');
+      pendingLoot.forEach(l => {
+        if (l.type === 'gold') player.gold += l.amount;
+        else addToInventory({ type: l.type, data: l.data, qty: 1 });
+      });
+      pendingLoot = [];
+      showVictory();
+    }
+
+    // ==========================================
+    // VICTORY / DEATH
+    // ==========================================
+    function showVictory() {
+      player.xp += monster.xp;
+      document.getElementById('xp-gained').textContent = monster.xp;
+      document.getElementById('victory-text').textContent = `Has derrotado a ${monster.name}`;
+
+      let leveledUp = false;
+      while (player.xp >= player.xpToLevel) {
+        player.xp -= player.xpToLevel;
+        player.level++;
+        player.xpToLevel = Math.floor(player.xpToLevel * 1.4);
+        player.baseStats.fuerza++;
+        player.baseStats.agilidad++;
+        player.baseStats.resistencia++;
+        player.baseStats.energia++;
+        leveledUp = true;
+      }
+      recalcDerived();
+      // Heal between battles
+      player.hp = Math.min(player.maxHp, player.hp + Math.floor(player.maxHp * 0.3));
+      player.energy = player.maxEnergy;
+
+      document.getElementById('victory-level').textContent = player.level;
+      document.getElementById('xp-current').textContent = player.xp;
+      document.getElementById('xp-needed').textContent = player.xpToLevel;
+      document.getElementById('xp-bar').style.width = (player.xp / player.xpToLevel * 100) + '%';
+      const lm = document.getElementById('levelup-msg');
+      if (leveledUp) { document.getElementById('new-level').textContent = player.level; lm.style.display = 'block'; }
+      else lm.style.display = 'none';
+
+      showScreen('screen-victory');
+    }
+
+    function showDeath() {
+      document.getElementById('death-floor').textContent = floor;
+      document.getElementById('death-level').textContent = player.level;
+      localStorage.removeItem('dqrpg_save');
+      showScreen('screen-death');
+    }
+
+    // ==========================================
+    // SHOP
+    // ==========================================
+    function goToShop() {
+      generateShopStock();
+      returnScreen = 'screen-shop';
+      renderShop();
+      showScreen('screen-shop');
+    }
+
+    function generateShopStock() {
+      shopStock = [];
+      // Always sell potions
+      shopStock.push({ ...CONSUMABLE_DB[0] }); // HP potion
+      shopStock.push({ ...CONSUMABLE_DB[2] }); // Energy potion
+      if (floor >= 3) shopStock.push({ ...CONSUMABLE_DB[1] }); // HP mayor
+      if (floor >= 5) {
+        shopStock.push({ ...CONSUMABLE_DB[3] }); // Elixir guerra
+        shopStock.push({ ...CONSUMABLE_DB[4] }); // Elixir sombra
+      }
+
+      // Equipment based on floor
+      const maxPrice = 30 + floor * 25;
+      const available = EQUIPMENT_DB.filter(e => e.price <= maxPrice);
+      // Pick 4-6 random equipment
+      const shuffled = available.sort(() => Math.random() - 0.5);
+      const count = Math.min(shuffled.length, 4 + Math.floor(floor / 3));
+      for (let i = 0; i < count; i++) shopStock.push({ ...shuffled[i], _type: 'equipment' });
+    }
+
+    function switchShopTab(tab) {
+      currentShopTab = tab;
+      document.querySelectorAll('#screen-shop .tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('stab-' + tab).classList.add('active');
+      renderShop();
+    }
+
+    function renderShop() {
+      document.getElementById('shop-gold').textContent = player.gold;
+      const el = document.getElementById('shop-content');
+
+      if (currentShopTab === 'buy') {
+        let html = '<div class="shop-grid">';
+        shopStock.forEach((item, i) => {
+          const isEquip = item._type === 'equipment' || item.slot;
+          const isCons = item.effect !== undefined && !item.slot;
+          const canBuy = player.gold >= item.price;
+          let desc = '';
+          if (isEquip && item.stats) {
+            desc = Object.entries(item.stats).map(([k, v]) => `+${v} ${k.substring(0, 3).toUpperCase()}`).join(', ');
+            desc += ` · ${SLOT_NAMES[item.slot]?.split(' ')[1] || ''}`;
+          } else if (isCons) {
+            desc = item.desc;
+          }
+          const r = item.rarity || 'comun';
+          html += `<div class="shop-item">
+        <div class="item-icon">${item.icon}</div>
+        <div class="item-info">
+          <div class="item-name rarity-${r}">${item.name}</div>
+          <div class="item-desc">${RARITY_NAMES[r]} · ${desc}</div>
+        </div>
+        <div class="shop-price">${item.price}🪙</div>
+        <button class="buy-btn" onclick="buyItem(${i})" ${canBuy ? '' : 'disabled'}>Comprar</button>
+      </div>`;
+        });
+        html += '</div>';
+        el.innerHTML = html;
+
+      } else { // sell
+        const sellable = player.inventory.map((item, i) => ({ item, i }));
+        if (sellable.length === 0) {
+          el.innerHTML = '<div class="empty-msg">Nada para vender</div>';
+          return;
+        }
+        let html = '<div class="shop-grid">';
+        sellable.forEach(({ item, i }) => {
+          let price = 0;
+          if (item.type === 'junk') price = item.data.sellPrice;
+          else if (item.type === 'equipment') price = Math.floor(item.data.price * 0.4);
+          else if (item.type === 'consumable') price = Math.floor(item.data.price * 0.3);
+          const qtyText = item.qty > 1 ? ` x${item.qty}` : '';
+          const r = item.data.rarity || 'comun';
+          html += `<div class="shop-item">
+        <div class="item-icon">${item.data.icon}</div>
+        <div class="item-info">
+          <div class="item-name rarity-${r}">${item.data.name}${qtyText}</div>
+          <div class="item-desc">${RARITY_NAMES[r]}</div>
+        </div>
+        <div class="shop-price" style="color:var(--green)">${price}🪙</div>
+        <button class="buy-btn" onclick="shopSellItem(${i})" style="border-color:var(--green);color:var(--green)">Vender</button>
+      </div>`;
+        });
+        html += '</div>';
+        el.innerHTML = html;
+      }
+    }
+
+    function buyItem(shopIdx) {
+      const item = shopStock[shopIdx];
+      if (!item || player.gold < item.price) return;
+      player.gold -= item.price;
+      if (item.effect !== undefined && !item.slot) {
+        addToInventory({ type: 'consumable', data: { ...item }, qty: 1 });
+      } else {
+        addToInventory({ type: 'equipment', data: { ...item }, qty: 1 });
+      }
+      renderShop();
+    }
+
+    function shopSellItem(invIdx) {
+      sellItem(invIdx);
+      renderShop();
+    }
+
+    function leaveShop() {
+      saveGame();
+      floor++;
+      startBattle();
+    }
+
+    // ==========================================
+    // SAVE / LOAD
+    // ==========================================
+    function saveGame() {
+      localStorage.setItem('dqrpg_save', JSON.stringify({ player, floor, buffs, version: 2 }));
+    }
+
+    function saveAndQuit() {
+      saveGame();
+      showScreen('screen-title');
+    }
+
+    function loadGame() {
+      const raw = localStorage.getItem('dqrpg_save');
+      if (!raw) return;
+      try {
+        const save = JSON.parse(raw);
+        player = save.player;
+        floor = save.floor;
+        buffs = save.buffs || [];
+        recalcDerived();
+        startBattle();
+      } catch (e) { console.error('Load failed', e); }
+    }
+
+    // ==========================================
+    // INIT
+    // ==========================================
+    document.getElementById('char-name').addEventListener('input', checkCreateReady);
+    document.getElementById('btn-continue').style.display = localStorage.getItem('dqrpg_save') ? 'block' : 'none';
+    initStatsUI();
+
+    try { if (window.Telegram && Telegram.WebApp) { Telegram.WebApp.ready(); Telegram.WebApp.expand(); } } catch (e) { }
+  </script>
+</body>
+
+</html>
