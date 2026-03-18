@@ -795,10 +795,20 @@ function updateBattleUI(){
   const pot=player.inventory.find(i=>i.type==='consumable'&&i.data.effect==='hp');
   document.getElementById('potion-count').textContent=`x${pot?pot.qty:0}`;
 
-  // Check stun
+  // Check stun — auto-skip turn if stunned
   const stunned=playerStatuses.find(s=>s.id==='stun');
   document.querySelectorAll('.battle-btn').forEach(b=>b.disabled=!isPlayerTurn||!!stunned);
   updateAllHUD();
+  if(isPlayerTurn&&stunned){
+    setTimeout(()=>{
+      addLog('💫 ¡Estás aturdido! Pierdes el turno','info');
+      tickCooldowns();tickBuffs();tickStatuses();
+      if(player.hp<=0){updateBattleUI();setTimeout(()=>showDeath(),600);return;}
+      if(monster.hp<=0){updateBattleUI();setTimeout(()=>generateLoot(),600);return;}
+      isPlayerTurn=false;updateBattleUI();
+      setTimeout(()=>enemyTurn(),800);
+    },1000);
+  }
 }
 
 function updateAllHUD(){
@@ -836,10 +846,6 @@ function tickStatuses(){
 
 function doAction(action){
   if(!isPlayerTurn)return;
-  // Check stun
-  const stunned=playerStatuses.find(s=>s.id==='stun');
-  if(stunned){addLog('💫 ¡Estás aturdido! Pierdes el turno','info');isPlayerTurn=false;updateBattleUI();setTimeout(()=>{tickCooldowns();tickBuffs();tickStatuses();enemyTurn();},800);return;}
-
   player.defending=false;
   const stats=getEffectiveStats();
 
